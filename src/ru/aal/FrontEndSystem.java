@@ -1,11 +1,13 @@
 package ru.aal;
 
+import java.util.ArrayDeque;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class FrontEndSystem {
-    private Queue<Request> requests = new PriorityQueue<>(Comparator.comparing(Request::getClientThreadName));
+    private Queue<Request> requests = new ArrayDeque<>();
 
     public synchronized void addRequest(Request request) throws InterruptedException {
         try {
