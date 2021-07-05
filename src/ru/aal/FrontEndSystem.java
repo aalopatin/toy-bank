@@ -1,10 +1,8 @@
 package ru.aal;
 
 import java.util.ArrayDeque;
-import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.NoSuchElementException;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class FrontEndSystem {
     private Queue<Request> requests = new ArrayDeque<>();
@@ -22,9 +20,9 @@ public class FrontEndSystem {
 
     }
 
-    public synchronized Request pollRequest() throws InterruptedException {
+    public synchronized Request pollRequest(boolean thereAreClients) throws InterruptedException, NoSuchElementException {
         try {
-            while (requests.isEmpty()) {
+            while (requests.isEmpty() && thereAreClients) {
                 wait();
             }
             Request request = requests.remove();

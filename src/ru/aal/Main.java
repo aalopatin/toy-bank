@@ -1,5 +1,6 @@
 package ru.aal;
 
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -8,6 +9,8 @@ public class Main {
     private static Random random = new Random();
     private final static FrontEndSystem FRONT_END_SYSTEM = new FrontEndSystem();
     private final static BackEndSystem BACK_END_SYSTEM = new BackEndSystem();
+    private static volatile int addedCount = 0;
+    private static volatile int completedCount = 0;
 
     public static void main(String[] args) {
 
@@ -25,12 +28,11 @@ public class Main {
             String name = "Client №" + i;
             int amount =  10_000 * (random.nextInt(100) + 1);
             RequestType type = RequestType.values()[random.nextInt(2)];
-
             Runnable  r = () -> {
                 try {
                     Request request = new Request(name, amount, type);
                     FRONT_END_SYSTEM.addRequest(request);
-
+                    addedCount++;
                 } catch (InterruptedException e) {
 
                 }
@@ -43,13 +45,19 @@ public class Main {
         for (int i = 1; i < countHandlers + 1; i++) {
 
             String name = "Обработчик заявок №" + i;
+            int finalCountClients = countClients;
             Runnable r = () -> {
                 try {
-                    while(true) {
-                        Request request = FRONT_END_SYSTEM.pollRequest();
+                    while(completedCount < finalCountClients) {
+                        Request request = FRONT_END_SYSTEM.pollRequest(addedCount < finalCountClients);
                         BACK_END_SYSTEM.executeRequest(request);
+                        completedCount++;
                     }
-                } catch (InterruptedException e) {
+                    throw new NoSuchElementException();
+                } catch (NoSuchElementException e) {
+                    System.out.printf("%s: Все заявки обработаны!\n", name);
+                }
+                catch (InterruptedException e) {
 
                 }
 
